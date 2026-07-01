@@ -1,0 +1,631 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Кто я такой? — интерактивная лекция</title>
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/reveal.js@5.1.0/dist/reveal.css">
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/reveal.js@5.1.0/dist/theme/black.css">
+  <style>
+    @import url('https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,500;0,700;1,500&family=Onest:wght@400;600;800&display=swap');
+
+    :root {
+      --violet: #a78bfa;
+      --rose: #fb7185;
+      --gold: #fbbf24;
+      --sky: #7dd3fc;
+      --muted: #94a3b8;
+      --card: rgba(255,255,255,0.06);
+      --glow: rgba(167, 139, 250, 0.25);
+    }
+
+    .reveal {
+      font-family: 'Onest', sans-serif;
+      font-size: 28px;
+    }
+    .reveal h1, .reveal h2, .reveal h3 {
+      font-family: 'Cormorant Garamond', serif;
+      text-transform: none;
+      font-weight: 700;
+    }
+    .reveal h1 {
+      font-size: 2.6em;
+      background: linear-gradient(135deg, #fff 30%, var(--violet));
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      background-clip: text;
+    }
+    .reveal h2 { font-size: 1.7em; color: var(--violet); }
+    .reveal h3 { font-size: 1.1em; color: #e2e8f0; font-family: 'Onest', sans-serif; font-weight: 600; }
+    .reveal p, .reveal li { color: #cbd5e1; line-height: 1.5; }
+    .reveal .lead { font-size: 1.1em; color: #f1f5f9; }
+    .reveal .muted { color: var(--muted); font-size: 0.75em; }
+    .reveal .tag {
+      display: inline-block;
+      padding: 6px 14px;
+      border-radius: 999px;
+      background: var(--card);
+      border: 1px solid rgba(255,255,255,0.1);
+      font-size: 0.55em;
+      color: var(--sky);
+      margin-top: 0.8em;
+    }
+    .reveal .big-quote {
+      font-family: 'Cormorant Garamond', serif;
+      font-size: 1.5em;
+      font-weight: 500;
+      color: #f8fafc;
+      line-height: 1.35;
+      max-width: 880px;
+      margin: 0 auto;
+    }
+    .reveal .big-quote em { color: var(--gold); font-style: italic; }
+
+    /* interactive cards */
+    .grid-2 { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; margin-top: 1em; }
+    .grid-4 { display: grid; grid-template-columns: repeat(4, 1fr); gap: 12px; margin-top: 1em; }
+    .i-card {
+      background: var(--card);
+      border: 2px solid rgba(255,255,255,0.08);
+      border-radius: 16px;
+      padding: 20px 16px;
+      cursor: pointer;
+      transition: all 0.35s ease;
+      text-align: center;
+      min-height: 120px;
+      display: flex;
+      flex-direction: column;
+      justify-content: center;
+      user-select: none;
+    }
+    .i-card:hover { border-color: var(--violet); transform: translateY(-3px); box-shadow: 0 8px 30px var(--glow); }
+    .i-card.active { border-color: var(--gold); background: rgba(251, 191, 36, 0.1); }
+    .i-card .icon { font-size: 2em; margin-bottom: 0.2em; }
+    .i-card .label { font-weight: 600; color: #fff; font-size: 0.85em; }
+    .i-card .hint { font-size: 0.55em; color: var(--muted); margin-top: 8px; opacity: 0; max-height: 0; overflow: hidden; transition: all 0.4s; }
+    .i-card.active .hint { opacity: 1; max-height: 80px; }
+
+    .reveal-box {
+      margin-top: 1.2em;
+      padding: 20px 24px;
+      border-radius: 16px;
+      background: rgba(167, 139, 250, 0.12);
+      border-left: 4px solid var(--violet);
+      text-align: left;
+      font-size: 0.8em;
+      min-height: 60px;
+    }
+
+    /* onion layers */
+    .onion { margin: 1em auto; max-width: 520px; }
+    .layer {
+      margin: 8px auto;
+      padding: 14px 20px;
+      border-radius: 12px;
+      cursor: pointer;
+      transition: all 0.3s;
+      border: 2px solid transparent;
+      font-size: 0.75em;
+      text-align: left;
+    }
+    .layer:hover { transform: scale(1.02); }
+    .layer.l1 { width: 100%; background: rgba(251,113,133,0.15); }
+    .layer.l2 { width: 88%; background: rgba(251,191,36,0.12); }
+    .layer.l3 { width: 76%; background: rgba(167,139,250,0.15); }
+    .layer.l4 { width: 64%; background: rgba(125,211,252,0.12); }
+    .layer.l5 { width: 52%; background: rgba(255,255,255,0.08); }
+    .layer.active { border-color: #fff; box-shadow: 0 0 20px var(--glow); }
+    .layer-detail {
+      margin-top: 1em;
+      font-size: 0.72em;
+      color: #e2e8f0;
+      min-height: 48px;
+      padding: 12px;
+      background: var(--card);
+      border-radius: 12px;
+    }
+
+    /* timer */
+    .timer-wrap { position: relative; margin: 1.5em auto; width: 200px; height: 200px; }
+    .timer-ring {
+      width: 200px; height: 200px;
+      border-radius: 50%;
+      border: 4px solid rgba(255,255,255,0.1);
+      display: flex; align-items: center; justify-content: center;
+      flex-direction: column;
+      transition: border-color 0.3s;
+    }
+    .timer-ring.running { border-color: var(--violet); animation: breathe 4s ease-in-out infinite; }
+    @keyframes breathe {
+      0%, 100% { box-shadow: 0 0 0 0 var(--glow); }
+      50% { box-shadow: 0 0 40px 8px var(--glow); }
+    }
+    .timer-num { font-size: 2.5em; font-weight: 800; color: #fff; font-variant-numeric: tabular-nums; }
+    .timer-label { font-size: 0.45em; color: var(--muted); }
+    .btn {
+      display: inline-block;
+      margin: 8px 6px;
+      padding: 12px 28px;
+      border-radius: 999px;
+      border: none;
+      font-family: 'Onest', sans-serif;
+      font-size: 0.65em;
+      font-weight: 600;
+      cursor: pointer;
+      transition: all 0.2s;
+    }
+    .btn-primary { background: var(--violet); color: #1e1b4b; }
+    .btn-primary:hover { background: #c4b5fd; transform: scale(1.05); }
+    .btn-ghost { background: transparent; color: #cbd5e1; border: 1px solid rgba(255,255,255,0.2); }
+    .btn-ghost:hover { border-color: var(--violet); }
+
+    /* poll */
+    .poll { display: flex; flex-wrap: wrap; gap: 10px; justify-content: center; margin: 1em 0; }
+    .poll-btn {
+      padding: 14px 22px;
+      border-radius: 12px;
+      background: var(--card);
+      border: 2px solid rgba(255,255,255,0.1);
+      color: #e2e8f0;
+      font-size: 0.7em;
+      cursor: pointer;
+      transition: all 0.25s;
+      font-family: 'Onest', sans-serif;
+    }
+    .poll-btn:hover { border-color: var(--sky); }
+    .poll-btn.selected { border-color: var(--gold); background: rgba(251,191,36,0.15); color: #fff; }
+    .poll-result { font-size: 0.75em; color: var(--sky); margin-top: 0.8em; min-height: 1.5em; }
+
+    /* philosopher cards */
+    .philo-grid { display: grid; grid-template-columns: repeat(2, 1fr); gap: 14px; margin-top: 0.8em; }
+    .philo {
+      background: var(--card);
+      border-radius: 14px;
+      padding: 16px;
+      cursor: pointer;
+      text-align: left;
+      border: 2px solid transparent;
+      transition: all 0.3s;
+      font-size: 0.68em;
+    }
+    .philo:hover { border-color: rgba(255,255,255,0.15); }
+    .philo.open { border-color: var(--violet); }
+    .philo .name { font-weight: 800; color: var(--gold); font-size: 1.1em; }
+    .philo .idea { color: #e2e8f0; margin-top: 6px; }
+    .philo .prov { color: var(--muted); margin-top: 8px; display: none; font-style: italic; }
+    .philo.open .prov { display: block; }
+
+    /* takeaways */
+    .takeaway {
+      display: flex; gap: 16px; align-items: flex-start;
+      background: var(--card); border-radius: 14px;
+      padding: 18px 22px; margin: 10px 0;
+      text-align: left; font-size: 0.72em;
+      opacity: 0.4; transform: translateX(-10px);
+      transition: all 0.4s;
+      cursor: pointer;
+    }
+    .takeaway.revealed { opacity: 1; transform: none; border-left: 4px solid var(--violet); }
+    .takeaway-num { font-size: 1.8em; font-weight: 800; color: var(--violet); line-height: 1; }
+
+    .compare-visual {
+      display: flex; gap: 24px; align-items: center; justify-content: center; margin-top: 1em;
+    }
+    .compare-box {
+      width: 200px; padding: 24px; border-radius: 16px; text-align: center; font-size: 0.7em;
+    }
+    .compare-box.draft { background: rgba(125,211,252,0.12); border: 2px dashed var(--sky); }
+    .compare-box.poster { background: rgba(251,191,36,0.12); border: 2px solid var(--gold); }
+    .arrow { font-size: 2em; color: var(--muted); }
+
+    .title-slide {
+      background:
+        radial-gradient(ellipse at 20% 30%, rgba(167,139,250,0.2), transparent 50%),
+        radial-gradient(ellipse at 80% 70%, rgba(251,113,133,0.12), transparent 50%);
+    }
+    .final-slide {
+      background: radial-gradient(ellipse at center, rgba(167,139,250,0.15), transparent 60%);
+    }
+
+    .hand-prompt {
+      font-size: 3em;
+      animation: wave 2s ease-in-out infinite;
+      display: inline-block;
+    }
+    @keyframes wave {
+      0%, 100% { transform: rotate(0deg); }
+      25% { transform: rotate(14deg); }
+      75% { transform: rotate(-8deg); }
+    }
+
+    .question-card {
+      background: var(--card);
+      border-radius: 14px;
+      padding: 18px;
+      margin: 8px 0;
+      text-align: left;
+      font-size: 0.75em;
+      border: 1px solid rgba(255,255,255,0.08);
+      cursor: pointer;
+      transition: all 0.3s;
+    }
+    .question-card:hover { border-color: var(--rose); background: rgba(251,113,133,0.08); }
+    .question-card .num { color: var(--rose); font-weight: 800; margin-right: 8px; }
+
+    .progress-hint {
+      position: fixed; bottom: 12px; left: 50%; transform: translateX(-50%);
+      font-size: 11px; color: rgba(255,255,255,0.35);
+      z-index: 100; pointer-events: none;
+      font-family: 'Onest', sans-serif;
+    }
+  </style>
+</head>
+<body>
+  <div class="progress-hint">← → листать · кликайте по карточкам · F — полный экран</div>
+
+  <div class="reveal">
+    <div class="slides">
+
+      <!-- 1. Титул -->
+      <section class="title-slide" data-background-color="#0c0a14">
+        <p class="muted">Интерактивная лекция · ~30 минут</p>
+        <h1>Кто я такой?</h1>
+        <p class="lead">Вопрос, который звучит просто.<br>Ответ — не так прост.</p>
+        <span class="tag">нажмите → чтобы начать</span>
+      </section>
+
+      <!-- 2. Крючок + интерактив -->
+      <section data-background-color="#0c0a14">
+        <h2>Вы уверены, что знаете ответ?</h2>
+        <p class="lead fragment">Я — студент. Я — друг. Я — тот, кто любит кофе.</p>
+        <p class="fragment muted">Звучит знакомо?</p>
+        <div class="fragment" style="margin-top:1.5em">
+          <span class="hand-prompt">🙋</span>
+          <p class="lead">Поднимите руку, если хоть раз спрашивали себя:<br><em>«Это вообще я? Или я делаю вид?»</em></p>
+        </div>
+        <p class="fragment muted">Мы в одной лодке. Она называется «человеческое существование».</p>
+      </section>
+
+      <!-- 3. Черновик -->
+      <section data-background-color="#0c0a14">
+        <h2>«Я» — не монумент</h2>
+        <div class="compare-visual">
+          <div class="compare-box draft fragment">
+            <div style="font-size:2em">📝</div>
+            <strong>Черновик</strong>
+            <p class="muted" style="margin-top:8px">версия 1.0 → 2.0 → 3.0…</p>
+          </div>
+          <div class="arrow fragment">≠</div>
+          <div class="compare-box poster fragment">
+            <div style="font-size:2em">🗿</div>
+            <strong>Монумент</strong>
+            <p class="muted" style="margin-top:8px">навсегда, без правок</p>
+          </div>
+        </div>
+        <p class="fragment big-quote" style="margin-top:1em;font-size:1.2em">
+          В 5 классе — один ответ на «кем хочешь стать».<br>В 20 — уже другой. <em>И это нормально.</em>
+        </p>
+      </section>
+
+      <!-- 4. Четыре «я» — интерактив -->
+      <section data-background-color="#0c0a14">
+        <h2>Четыре кандидата на «я»</h2>
+        <p class="muted">Нажмите на карточку</p>
+        <div class="grid-4" id="four-i">
+          <div class="i-card" data-id="passport">
+            <div class="icon">📄</div>
+            <div class="label">Паспорт</div>
+            <div class="hint">Имя — метка. Сменил имя — ты остался</div>
+          </div>
+          <div class="i-card" data-id="body">
+            <div class="icon">🫀</div>
+            <div class="label">Тело</div>
+            <div class="hint">Клетки обновляются. Вы буквально пересобраны</div>
+          </div>
+          <div class="i-card" data-id="memory">
+            <div class="icon">🧠</div>
+            <div class="label">Память</div>
+            <div class="hint">Память — редактор, не архив. История искажается</div>
+          </div>
+          <div class="i-card" data-id="roles">
+            <div class="icon">🎭</div>
+            <div class="label">Роли</div>
+            <div class="hint">Сын. Коллега. В сети — другой. Маски?</div>
+          </div>
+        </div>
+        <div class="reveal-box" id="four-i-detail">Выберите карточку — и посмотрим, почему ни одна не равна всему «я»</div>
+      </section>
+
+      <!-- 5. Оркестр -->
+      <section data-background-color="#0c0a14">
+        <p class="big-quote">Вы не один человек.<br>Вы — <em>оркестр</em>.</p>
+        <p class="fragment lead" style="margin-top:1.2em">Вопрос не «кто дирижёр»,<br>а «кто сегодня играет громче»</p>
+        <div class="fragment poll" id="poll-layer" style="margin-top:1.5em">
+          <p class="muted" style="width:100%;margin-bottom:0.5em">Кликните — что у вас на переднем плане <strong>прямо сейчас</strong>?</p>
+          <button class="poll-btn" data-v="role">Роль / ожидания</button>
+          <button class="poll-btn" data-v="fear">Страх / тревога</button>
+          <button class="poll-btn" data-v="values">Ценности</button>
+          <button class="poll-btn" data-v="body">Тело / усталость</button>
+          <button class="poll-btn" data-v="unknown">Не знаю — и ладно</button>
+        </div>
+        <p class="poll-result" id="poll-result"></p>
+      </section>
+
+      <!-- 6. Луковица — интерактив -->
+      <section data-background-color="#0c0a14">
+        <h2>Луковица идентичности</h2>
+        <p class="muted">Нажмите на слой</p>
+        <div class="onion">
+          <div class="layer l1" data-layer="Роль / маска — то, что видят другие. Instagram, HR, родители. Опасность: перепутать роль с сутью.">
+            🎭 Роль / маска
+          </div>
+          <div class="layer l2" data-layer="Ценности — ради чего терпите дискомфорт. «Ленивый», но встаёт в 6 утра ради ребёнка? Ценность сильнее.">
+            💎 Ценности
+          </div>
+          <div class="layer l3" data-layer="История — «я борец», «я жертва». Мотивирует, но и запирает. Иногда надо переписать автобиографию.">
+            📖 История
+          </div>
+          <div class="layer l4" data-layer="Тело и эмоции — голод, страх, кофе. Вы другой человек в 3 ночи и после третьей чашки. Нейробиология, не шутка.">
+            ⚡ Тело и эмоции
+          </div>
+          <div class="layer l5" data-layer="Наблюдатель — тихий голос: «зачем я это делаю?» Без него нет рефлексии.">
+            👁 Наблюдатель
+          </div>
+        </div>
+        <div class="layer-detail" id="layer-detail">Слой за слоем — к ядру</div>
+      </section>
+
+      <!-- 7. Роль ≠ суть -->
+      <section data-background-color="#111018">
+        <h2>Роль ≠ суть</h2>
+        <div class="compare-visual">
+          <div class="compare-box draft">
+            <p>«Я <strong>провалил</strong> экзамен»</p>
+            <p class="muted" style="margin-top:10px">событие</p>
+          </div>
+          <div class="arrow">→</div>
+          <div class="compare-box" style="border:2px solid var(--rose);background:rgba(251,113,133,0.1)">
+            <p>«Я — <strong>провал</strong>»</p>
+            <p class="muted" style="margin-top:10px">ярлык на всю жизнь</p>
+          </div>
+        </div>
+        <p class="fragment lead" style="margin-top:1.2em;color:var(--rose)">Второе — ловушка. Первое — опыт.</p>
+      </section>
+
+      <!-- 8. Таймер 60 сек -->
+      <section data-background-color="#0a0a12">
+        <h2>60 секунд без ярлыков</h2>
+        <p class="muted">Закройте глаза или смотрите в точку.<br>Спросите себя: <strong>«Кто я?»</strong> — без имени, профессии, возраста.</p>
+        <div class="timer-wrap">
+          <div class="timer-ring" id="timer-ring">
+            <div class="timer-num" id="timer-num">60</div>
+            <div class="timer-label">секунд</div>
+          </div>
+        </div>
+        <button class="btn btn-primary" id="timer-start">▶ Начать</button>
+        <button class="btn btn-ghost" id="timer-reset">↺ Сброс</button>
+        <p class="fragment muted" id="timer-done" style="margin-top:1em;display:none">
+          Кто замечал мысли? Кто — пустоту? Оба ответа — нормальные.
+        </p>
+      </section>
+
+      <!-- 9. Три вопроса -->
+      <section data-background-color="#0c0a14">
+        <h2>Три вопроса</h2>
+        <p class="muted">Соседу или про себя · нажмите на вопрос, чтобы обсудить</p>
+        <div class="question-card" data-q="1">
+          <span class="num">1.</span> Чем вы <strong>гордитесь</strong>, но редко говорите вслух?
+        </div>
+        <div class="question-card" data-q="2">
+          <span class="num">2.</span> Какую <strong>роль</strong> играете чаще всего — и устаёте от неё?
+        </div>
+        <div class="question-card" data-q="3">
+          <span class="num">3.</span> Если убрать все ярлыки — <strong>что останется</strong>?
+        </div>
+        <p class="muted" id="q-discussed" style="margin-top:1em;min-height:1.2em"></p>
+      </section>
+
+      <!-- 10. Философы — клик -->
+      <section data-background-color="#0c0a14">
+        <h2>Ум думал об этом веками</h2>
+        <p class="muted">Нажмите на имя — откроется провокация</p>
+        <div class="philo-grid">
+          <div class="philo">
+            <div class="name">Декарт</div>
+            <div class="idea">«Мыслю — следовательно, существую»</div>
+            <div class="prov">Я = мыслящее. А если мысли хаотичны и противоречивы?</div>
+          </div>
+          <div class="philo">
+            <div class="name">Юм</div>
+            <div class="idea">Нет единого «я» — пучок восприятий</div>
+            <div class="prov">Вы не вещь. Вы — процесс.</div>
+          </div>
+          <div class="philo">
+            <div class="name">Сократ</div>
+            <div class="idea">«Познай самого себя»</div>
+            <div class="prov">Ответ не в Google. И не в чужом TikTok.</div>
+          </div>
+          <div class="philo">
+            <div class="name">Восточная традиция</div>
+            <div class="idea">Нет постоянного «я» (анатта)</div>
+            <div class="prov">Освобождение — от цепляния за ложную картинку себя.</div>
+          </div>
+        </div>
+      </section>
+
+      <!-- 11. Лента vs жизнь -->
+      <section data-background-color="#0c0a14">
+        <h2>Черновик vs постер</h2>
+        <div class="compare-visual">
+          <div class="compare-box draft">
+            <div style="font-size:2em">📓</div>
+            <strong>Ваша жизнь</strong>
+            <p class="muted">черновик, правки, сомнения</p>
+          </div>
+          <div class="compare-box poster">
+            <div style="font-size:2em">✨</div>
+            <strong>Чужая лента</strong>
+            <p class="muted">монтаж, лучший кадр</p>
+          </div>
+        </div>
+        <p class="fragment big-quote" style="font-size:1.15em;margin-top:1em">
+          Сравнивать своё «я» с чужим Instagram —<br>как сравнивать <em>черновик с рекламой</em>.
+        </p>
+      </section>
+
+      <!-- 12. Мозг -->
+      <section data-background-color="#0c0a14">
+        <h2>А что говорит мозг?</h2>
+        <p class="lead fragment">«Я» в мозге — не одна кнопка.</p>
+        <p class="fragment">Это <strong>сборка</strong>: память + эмоции + тело + прогнозы.</p>
+        <p class="fragment muted" style="margin-top:1em">
+          Когда вы «ни о чём не думаете» — мозг всё равно крутит историю о вас:<br>
+          прошлое, будущее, «что подумают».
+        </p>
+        <p class="fragment" style="margin-top:1.2em;font-size:0.85em;color:var(--sky)">
+          Нейрошутка: вы — галлюцинация, которую мозг согласился считать реальной. 🧠
+        </p>
+      </section>
+
+      <!-- 13. Три вывода — клик -->
+      <section data-background-color="#0c0a14">
+        <h2>Три вещи на завтра</h2>
+        <p class="muted">Нажмите, чтобы открыть</p>
+        <div class="takeaway" data-t="1">
+          <div class="takeaway-num">1</div>
+          <div><strong>«Я» — глагол, не существительное.</strong><br><span class="muted">Вы становитесь. Смена пути — не предательство, если выросли.</span></div>
+        </div>
+        <div class="takeaway" data-t="2">
+          <div class="takeaway-num">2</div>
+          <div><strong>Честность важнее образа.</strong><br><span class="muted">Роль без ценностей выжигает. Лучше «в процессе», чем «идеальный на вид».</span></div>
+        </div>
+        <div class="takeaway" data-t="3">
+          <div class="takeaway-num">3</div>
+          <div><strong>Вопрос важнее ответа.</strong><br><span class="muted">«Кто я?» — компас при выборе учёбы, работы, отношений.</span></div>
+        </div>
+      </section>
+
+      <!-- 14. Финал -->
+      <section class="final-slide" data-background-color="#0c0a14">
+        <p class="big-quote">Кто вы такой?</p>
+        <p class="fragment muted" style="margin:1em 0">(пауза)</p>
+        <p class="fragment big-quote" style="font-size:1.3em">
+          <em>Я — не ответ.<br>Я — вопрос, которым стоит жить.</em>
+        </p>
+        <p class="fragment lead" style="margin-top:1.5em">Спасибо. Вопросы?</p>
+      </section>
+
+    </div>
+  </div>
+
+  <script src="https://cdn.jsdelivr.net/npm/reveal.js@5.1.0/dist/reveal.js"></script>
+  <script>
+    Reveal.initialize({
+      hash: true,
+      slideNumber: 'c/t',
+      transition: 'fade',
+      transitionSpeed: 'fast',
+      center: true,
+      width: 1280,
+      height: 720,
+      margin: 0.08,
+    });
+
+    // Четыре «я»
+    const fourDetails = {
+      passport: 'Паспорт говорит: вот ты. Но имя — метка для бюрократии. Сменил документы — человек остался. Значит, я ≠ строка в паспорте.',
+      body: 'Болит тело — страдаю я. Логично. Но клетки обновляются: через годы вы пересобраны. И всё же чувствуете непрерывность. Откуда?',
+      memory: '«Я — моя история». Но память редактирует прошлое под настоящее. Два свидетеля одного события — две разные «истории себя».',
+      roles: 'Сын. Друг. Коллега. В комментариях — третий. Все это «я»? Или маски, которые надеваем по ситуации?',
+    };
+    document.querySelectorAll('#four-i .i-card').forEach(card => {
+      card.addEventListener('click', () => {
+        document.querySelectorAll('#four-i .i-card').forEach(c => c.classList.remove('active'));
+        card.classList.add('active');
+        document.getElementById('four-i-detail').textContent = fourDetails[card.dataset.id];
+      });
+    });
+
+    // Опрос слоёв
+    const pollMsgs = {
+      role: 'Роль громко звучит — но помните: вы ≠ ваша роль.',
+      fear: 'Страх временный дирижёр. Он не определяет весь оркестр.',
+      values: 'Ценности — ближе к ядру. Хороший знак.',
+      body: 'Тело честнее слов. Послушайте его.',
+      unknown: '«Не знаю» — честный ответ. Лучше, чем фальшивая уверенность.',
+    };
+    document.querySelectorAll('#poll-layer .poll-btn').forEach(btn => {
+      btn.addEventListener('click', () => {
+        document.querySelectorAll('#poll-layer .poll-btn').forEach(b => b.classList.remove('selected'));
+        btn.classList.add('selected');
+        document.getElementById('poll-result').textContent = pollMsgs[btn.dataset.v];
+      });
+    });
+
+    // Луковица
+    document.querySelectorAll('.layer').forEach(layer => {
+      layer.addEventListener('click', () => {
+        document.querySelectorAll('.layer').forEach(l => l.classList.remove('active'));
+        layer.classList.add('active');
+        document.getElementById('layer-detail').textContent = layer.dataset.layer;
+      });
+    });
+
+    // Таймер
+    let timerIv = null;
+    let timeLeft = 60;
+    const timerNum = document.getElementById('timer-num');
+    const timerRing = document.getElementById('timer-ring');
+    const timerDone = document.getElementById('timer-done');
+
+    function resetTimer() {
+      clearInterval(timerIv);
+      timerIv = null;
+      timeLeft = 60;
+      timerNum.textContent = '60';
+      timerRing.classList.remove('running');
+      timerDone.style.display = 'none';
+    }
+
+    document.getElementById('timer-start').addEventListener('click', () => {
+      if (timerIv) return;
+      timerRing.classList.add('running');
+      timerIv = setInterval(() => {
+        timeLeft--;
+        timerNum.textContent = timeLeft;
+        if (timeLeft <= 0) {
+          clearInterval(timerIv);
+          timerIv = null;
+          timerRing.classList.remove('running');
+          timerNum.textContent = '✓';
+          timerDone.style.display = 'block';
+        }
+      }, 1000);
+    });
+    document.getElementById('timer-reset').addEventListener('click', resetTimer);
+
+    // Вопросы соседу
+    const qMsgs = ['Обсудите гордость — часто это ближе к настоящему «я».', 'Какая роль утомляет? Может, пора снять маску.', 'Что остаётся без ярлыков — самое интересное.'];
+    document.querySelectorAll('.question-card').forEach((card, i) => {
+      card.addEventListener('click', () => {
+        document.getElementById('q-discussed').textContent = '→ ' + qMsgs[i];
+        card.style.borderColor = 'var(--rose)';
+      });
+    });
+
+    // Философы
+    document.querySelectorAll('.philo').forEach(p => {
+      p.addEventListener('click', () => {
+        const was = p.classList.contains('open');
+        document.querySelectorAll('.philo').forEach(x => x.classList.remove('open'));
+        if (!was) p.classList.add('open');
+      });
+    });
+
+    // Выводы
+    document.querySelectorAll('.takeaway').forEach(t => {
+      t.addEventListener('click', () => t.classList.add('revealed'));
+    });
+  </script>
+</body>
+</html>
